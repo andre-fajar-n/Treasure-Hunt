@@ -22,13 +22,16 @@ type gridModel struct {
 }
 
 func main() {
-	template := createTemplate()
+	// looping grid show
+	for _, v := range clearPathCoordinate {
+		template := createTemplate()
+		grid := gridModel{
+			template:    template,
+			locTreasure: v,
+		}
 
-	grid := gridModel{
-		template:    template,
-		locTreasure: clearPathCoordinate[5],
+		grid.show()
 	}
-	grid.show()
 }
 
 func createTemplate() [][]string {
@@ -54,9 +57,7 @@ func createTemplate() [][]string {
 func (g *gridModel) show() {
 	// replace clear path with treasure
 	if g.locTreasure != "" {
-		xByte, yByte := g.locTreasure[0], g.locTreasure[len(g.locTreasure)-1]
-		x, _ := strconv.Atoi(string([]byte{xByte}))
-		y, _ := strconv.Atoi(string([]byte{yByte}))
+		x, y := coordinateStringToInt(g.locTreasure)
 		g.template[y][x] = "$"
 		fmt.Println("Location Treasure:", g.locTreasure)
 	}
@@ -67,4 +68,13 @@ func (g *gridModel) show() {
 		temp = append(temp, strings.Join(v, " "))
 	}
 	fmt.Println(strings.Join(temp, "\n"))
+	fmt.Println("\n===================================\n")
+}
+
+func coordinateStringToInt(coordinate string) (int, int) {
+	xByte, yByte := coordinate[0], coordinate[len(coordinate)-1]
+	x, _ := strconv.Atoi(string([]byte{xByte}))
+	y, _ := strconv.Atoi(string([]byte{yByte}))
+
+	return x, y
 }
