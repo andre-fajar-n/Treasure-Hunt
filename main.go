@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -15,23 +16,55 @@ var (
 	startingPositionCoordinate = "1,4"
 )
 
-func main() {
-	templateGrid()
+type gridModel struct {
+	template    [][]string
+	locTreasure string
 }
 
-func templateGrid() {
+func main() {
+	template := createTemplate()
+
+	grid := gridModel{
+		template:    template,
+		locTreasure: clearPathCoordinate[5],
+	}
+	grid.show()
+}
+
+func createTemplate() [][]string {
+	output := [][]string{}
 	for y := 0; y < 6; y++ {
+		temp := []string{}
 		for x := 0; x < 8; x++ {
 			coordinate := fmt.Sprintf("%d,%d", x, y)
 			if coordinate == startingPositionCoordinate {
-				fmt.Print("X")
+				temp = append(temp, "X")
 			} else if strings.Contains(strings.Join(clearPathCoordinate, ";"), coordinate) {
-				fmt.Print(".")
+				temp = append(temp, ".")
 			} else {
-				fmt.Print("#")
+				temp = append(temp, "#")
 			}
-			fmt.Print(" ")
 		}
-		fmt.Println()
+		output = append(output, temp)
 	}
+
+	return output
+}
+
+func (g *gridModel) show() {
+	// replace clear path with treasure
+	if g.locTreasure != "" {
+		xByte, yByte := g.locTreasure[0], g.locTreasure[len(g.locTreasure)-1]
+		x, _ := strconv.Atoi(string([]byte{xByte}))
+		y, _ := strconv.Atoi(string([]byte{yByte}))
+		g.template[y][x] = "$"
+		fmt.Println("Location Treasure:", g.locTreasure)
+	}
+
+	// show the grid
+	var temp []string
+	for _, v := range g.template {
+		temp = append(temp, strings.Join(v, " "))
+	}
+	fmt.Println(strings.Join(temp, "\n"))
 }
