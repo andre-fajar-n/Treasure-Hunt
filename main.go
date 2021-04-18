@@ -28,27 +28,31 @@ type navigation struct {
 	down          int
 	validTreasure string
 }
-type gridModel struct {
-	template    [][]string
-	locTreasure string
-}
 
 func main() {
-	// looping grid show
-	// for _, v := range clearPathCoordinate {
-	// 	template := createTemplate()
-	// 	grid := gridModel{
-	// 		template:    template,
-	// 		locTreasure: v,
-	// 	}
-
-	// 	grid.show()
-	// }
-	fmt.Println(findRoute())
+	TreasureHunt()
 }
 
-func createTemplate() [][]string {
-	output := [][]string{}
+func TreasureHunt() {
+	nav := findRoute()
+
+	for _, v := range nav {
+		createGrid(v)
+	}
+}
+
+func createGrid(nav navigation) {
+	var xTrs, yTrs int
+	if nav.validTreasure != "" {
+		xTrs, yTrs = coordinateStringToInt(nav.validTreasure)
+		fmt.Println("#######################################")
+		fmt.Println("Location Treasure:", nav.validTreasure)
+		fmt.Println(fmt.Sprintf("Up/North %d step(s)", nav.up))
+		fmt.Println(fmt.Sprintf("Right/East %d step(s)", nav.right))
+		fmt.Println(fmt.Sprintf("Down/South %d step(s)", nav.down))
+	}
+
+	output := []string{}
 	for y := 0; y < 6; y++ {
 		temp := []string{}
 		for x := 0; x < 8; x++ {
@@ -56,32 +60,22 @@ func createTemplate() [][]string {
 			if coordinate == startingPositionCoordinate {
 				temp = append(temp, "X")
 			} else if strings.Contains(strings.Join(clearPathCoordinate, ";"), coordinate) {
-				temp = append(temp, ".")
+				// replace clear path with treasure
+				if x == xTrs && y == yTrs {
+					temp = append(temp, "$")
+				} else {
+					temp = append(temp, ".")
+				}
 			} else {
 				temp = append(temp, "#")
 			}
 		}
-		output = append(output, temp)
+		output = append(output, strings.Join(temp, " "))
 	}
 
-	return output
-}
-
-func (g *gridModel) show() {
-	// replace clear path with treasure
-	if g.locTreasure != "" {
-		x, y := coordinateStringToInt(g.locTreasure)
-		g.template[y][x] = "$"
-		fmt.Println("Location Treasure:", g.locTreasure)
-	}
-
-	// show the grid
-	var temp []string
-	for _, v := range g.template {
-		temp = append(temp, strings.Join(v, " "))
-	}
-	fmt.Println(strings.Join(temp, "\n"))
-	fmt.Println("\n===================================\n")
+	showGrid := strings.Join(output, "\n")
+	fmt.Println(showGrid)
+	fmt.Println()
 }
 
 func coordinateStringToInt(coordinate string) (int, int) {
@@ -108,7 +102,7 @@ func findRoute() []navigation {
 				}
 				y := yStart - up + down
 				x := xStart + right
-				new := fmt.Sprintf("%d%d%d", up, right, down)
+				now := fmt.Sprintf("%d%d%d", up, right, down)
 
 				// check if coordinate is exist in clear paths
 				if strings.Contains(strings.Join(clearPathCoordinate, ";"), fmt.Sprintf("%d,%d", x, y)) {
@@ -142,8 +136,8 @@ func findRoute() []navigation {
 					}
 					if up > 0 && right > 0 && down > 0 {
 						beforeUp, beforeRight, beforeDown = up, right, down-1
-						if down == 1 && right > 1 {
-							beforeRight, beforeDown = right-1, 0
+						if right > 1 && down == 1 {
+							beforeRight, beforeDown = right, 0
 						}
 					}
 					before = fmt.Sprintf("%d%d%d", beforeUp, beforeRight, beforeDown)
@@ -153,10 +147,9 @@ func findRoute() []navigation {
 					if _, ok := validRoutes[before]; ok {
 						yBefore := yStart - beforeUp + beforeDown
 						xBefore := xStart + beforeRight
-						validRoutes[new] = true
-
-						// check the previous coordinate is exist in clear paths
-						if strings.Contains(strings.Join(clearPathCoordinate, ";"), fmt.Sprintf("%d,%d", xBefore, yBefore)) {
+						validRoutes[now] = true
+						// check the previous coordinate is exist in clear paths OR starting point
+						if strings.Contains(strings.Join(clearPathCoordinate, ";"), fmt.Sprintf("%d,%d", xBefore, yBefore)) || fmt.Sprintf("%d,%d", xBefore, yBefore) == startingPositionCoordinate {
 							nav = append(nav, navigation{
 								up:            up,
 								right:         right,
@@ -166,7 +159,7 @@ func findRoute() []navigation {
 						}
 					}
 				}
-				before = new
+				before = now
 			}
 		}
 	}
