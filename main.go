@@ -87,10 +87,8 @@ func coordinateStringToInt(coordinate string) (int, int) {
 }
 
 func findRoute() []navigation {
-	before := "000"
-	validRoutes := map[string]bool{
-		before: true,
-	}
+	var steps [width - 2][length - 2][width - 2]bool
+	steps[0][0][0] = true
 	xStart, yStart := coordinateStringToInt(startingPositionCoordinate)
 	nav := make([]navigation, 0)
 	for down := 0; down < width-2; down++ {
@@ -102,14 +100,12 @@ func findRoute() []navigation {
 				}
 				y := yStart - up + down
 				x := xStart + right
-				now := fmt.Sprintf("%d%d%d", up, right, down)
 
 				// check if coordinate is exist in clear paths
 				if strings.Contains(strings.Join(clearPathCoordinate, ";"), fmt.Sprintf("%d,%d", x, y)) {
 					var beforeUp, beforeRight, beforeDown int
 					// fix the condition step and step before is valid
 					if (up > 0 && right == 0 && down == 0) || (up == 0 && right > 0 && down == 0) || (up == 0 && right == 0 && down > 0) {
-						before = "000"
 						beforeUp, beforeRight, beforeDown = 0, 0, 0
 						if up > 1 {
 							beforeUp = up - 1
@@ -140,15 +136,14 @@ func findRoute() []navigation {
 							beforeRight, beforeDown = right, 0
 						}
 					}
-					before = fmt.Sprintf("%d%d%d", beforeUp, beforeRight, beforeDown)
 
 					// check if step before is valid
 					// it means, the previous step have been passed
-					if _, ok := validRoutes[before]; ok {
+					if steps[beforeUp][beforeRight][beforeDown] {
+						steps[up][right][down] = true
 						yBefore := yStart - beforeUp + beforeDown
 						xBefore := xStart + beforeRight
-						validRoutes[now] = true
-						// check the previous coordinate is exist in clear paths OR starting point
+
 						if strings.Contains(strings.Join(clearPathCoordinate, ";"), fmt.Sprintf("%d,%d", xBefore, yBefore)) || fmt.Sprintf("%d,%d", xBefore, yBefore) == startingPositionCoordinate {
 							nav = append(nav, navigation{
 								up:            up,
@@ -159,7 +154,6 @@ func findRoute() []navigation {
 						}
 					}
 				}
-				before = now
 			}
 		}
 	}
